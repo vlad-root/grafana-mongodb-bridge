@@ -8,18 +8,83 @@ Allows MongoDB to be used as a data source for Grafana by providing a proxy to c
 * **Grafana** > 3.x.x
 * **MongoDB** > 3.4.x
 
-## Installation
+## Deploy
 
-### Install the Grafana plugin components
+- Create and run docker-compose file 
 
-* Copy the whole mongodb-grafana dir into the Grafana plugins dir ( /usr/local/var/lib/grafana/plugins )
-* Restart the Grafana server. If installed via Homebrew, this will be `brew services restart grafana`
+```yml
+version: "3"
+services:
 
-### Install and Start the MongoDB proxy server
+  grafana-mongodb-bridge:
+	image: ghcr.io/vlad-root/grafana-mongodb-bridge:latest
+    networks:
+      - common
+    ports:
+      - 127.0.0.1:3333:3333
 
-* Open a command prompt in the mongodb-grafana directory
-* Run `npm install` to install the node.js dependencies
-* Run `npm run server` to start the REST API proxy to MongoDB. By default, the server listens on http://localhost:3333
+  # Either use a container with pre-built plugin
+  grafana-mongodb-bridge-plugin:
+    image: ghcr.io/vlad-root/grafana-mongodb-bridge-plugin:latest
+	networks:
+      - common
+    ports:
+      - 127.0.0.1:3001:3000
+
+  # Or download the plugin from the releases section and drop it in the ./_data/grafana/plugins folder
+  grafana:
+    image: grafana/grafana:latest
+    volumes: 
+      - ./_data/grafana/plugins:/var/lib/grafana/plugins/
+
+networks:
+  common:
+```
+
+## Query substitutions 
+
+### **$grafanaGroupInterval** - Automatically creates a group for a specified field based on a Grafana interval
+
+```js
+db.users.aggregate([
+	{"$group": {
+		"_id": {
+			"interval": {"$grafanaGroupInterval": "$created"},
+			"role": "$role"
+		},
+		"count": {
+			"$sum": 1
+		}
+	}},
+	{"$project": {"name": "$_id.role",  "value": "$count",  "ts": "$_id.interval",  "_id": 0}}
+])
+```
+
+### **$grafanaDateBucketCount** - Calculated bucket count for $bucketAuto query
+
+Unlike $grafanaGroupInterval there is no simple way to create secondary group with this method
+
+```js
+db.users.aggregate([
+	{"$bucketAuto": {
+		"groupBy" : "$created",  
+		"buckets" : "$dateBucketCount", 
+		"output" :  {
+			"maxLoginAttempts" : { "$max" : "$loginAttempts" } 
+		}
+	}},
+	{"$project": {"name": "Login attempts",  "value": "$maxLoginAttempts",  "ts": "$_id.created",  "_id": 0}}
+])
+```    
+### **$grafanaIntervalMilliseconds** - Interval length in milliseconds
+### **$grafanaFrom** - Date object for date selection range start
+### **$grafanaTo** - Date object for date selection range end
+
+### **$from** - deprecated (alias for $grafanaFrom)
+### **$to** - deprecated (alias for $grafanaTo)
+### **$dateBucketCount** - deprecated (alias for $grafanaDateBucketCount)
+
+<br>
 
 ## Examples
 
@@ -28,7 +93,7 @@ Create a new data source of type MongoDB as shown below. The MongoDB details are
 * **MongoDB URL** - `mongodb://rpiread:rpiread@rpi-sensor-data-shard-00-00-ifxxs.mongodb.net:27017,rpi-sensor-data-shard-00-01-ifxxs.mongodb.net:27017,rpi-sensor-data-shard-00-02-ifxxs.mongodb.net:27017/test?ssl=true&replicaSet=rpi-sensor-data-shard-0&authSource=admin`
 * **MongoDB Database** - `rpi`
 
-<img src="src/img/sample_datasource.png" alt="Sample Data Source" style="width: 500px;"/>
+<img src="doc/img/sample_datasource.png" alt="Sample Data Source" style="width: 500px;"/>
 
 Then save the data source
 
@@ -38,11 +103,11 @@ Import the dashboard in `examples\RPI MongoDB - Atlas.json`
 
 This should show a graph of light sensor values from a Raspberry PI with an [EnviroPHAT](https://thepihut.com/products/enviro-phat) board feeding readings every minute into a MongoDB Atlas database.
 
-<img src="src/img/sample_dashboard.png" alt="Sample Dashboard" style="width: 800px;"/>
+<img src="doc/img/sample_dashboard.png" alt="Sample Dashboard" style="width: 800px;"/>
 
 Clicking on the title of the graph allows you to see the aggregation query being run against the 'RPI Atlas' data source
 
-<img src="src/img/sample_query.png" alt="Sample Query" style="width: 800px;"/>
+<img src="doc/img/sample_query.png" alt="Sample Query" style="width: 800px;"/>
 
 The query here is
 
@@ -68,7 +133,7 @@ db.sensor_value.aggregate ( [
 `$sensor` and `$host` are template variables that are filled in by Grafana based on the drop down. The sample template queries are shown below. They expect documents to be returned with a single `_id` field.
 
 
-<img src="src/img/sample_template.png" alt="Sample Templates" style="width: 800px;"/>
+<img src="doc/img/sample_template.png" alt="Sample Templates" style="width: 800px;"/>
 
 #### Example 2 - Using $bucketAuto to push data point aggregation to the server
 
@@ -88,7 +153,7 @@ The dashboard in `examples\RPI MongoDB Bucket - Atlas.json` shows this.
 
 #### Example 3 - Using a Tabel Panel
 
-<img src="src/img/table_panel.png" alt="Table Panel" style="width: 800px;"/>
+<img src="doc/img/table_panel.png" alt="Table Panel" style="width: 800px;"/>
 
 Table panels are now supported with queries of the form
 
@@ -113,19 +178,7 @@ This launch ctrl plist runs the node script via forever. To check it's running, 
 
 ## Development
 
-To run grafana against a dev version of the plugin on a mac using grafana installed via Homebrew
- 
-* Stop the grafana service `brew services stop grafana`
-* Open a command prompt in /debugging
-* Run ./start_grafana.sh
-* Alter code
-* npm run build to build the UI
-* Developer tools -> empty cache and hard reload
-
-Note
-
-* Homebrew grafana versions in /usr/local/Cellar
-
+Run `docker-compose up --build` to start developing inside container
 
 
 
