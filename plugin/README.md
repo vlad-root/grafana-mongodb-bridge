@@ -63,6 +63,8 @@ db.sensor_value.aggregate ( [
 
 `$from` and `$to` are expanded by the plugin as BSON dates based on the range settings on the UI.
 
+## Template Variables
+
 `$sensor` and `$host` are template variables that are filled in by Grafana based on the drop down. The sample template queries are shown below. They expect documents to be returned with a single `_id` field.
 
 
@@ -76,8 +78,8 @@ Grafana tells the backend server the date range along with the size of the bucke
 db.sensor_value.aggregate( [ 
 {  "$match" :  {  "sensor_type" : "$sensor", "host_name" : "$host" , "ts" : { "$gte" : "$from", "$lt" : "$to" }}},
 {  "$bucketAuto" :  { "groupBy" : "$ts",  
-                           "buckets" : "$dateBucketCount", 
-                            "output" :  {  "maxValue" : { "$max" : "$sensor_value" }  }   }   },  
+						   "buckets" : "$dateBucketCount", 
+							"output" :  {  "maxValue" : { "$max" : "$sensor_value" }  }   }   },  
 {  "$project" :  {  "name" : "value",  "value" : "$maxValue",  "ts" : "$_id.min",  "_id" : 0  }  }  ]  )
 ```    
 Note that ```_id``` field of the bucketAuto output contains the start and end of the bucket so we can use that as the ```ts``` value
@@ -93,9 +95,9 @@ Table panels are now supported with queries of the form
 ```javascript
 db.sensor_value.aggregate(
 [
-    {  "$match" :  {  "ts" : { "$gte" : "$from", "$lt" : "$to"  }}},
-    {  "$group":    {  "_id":  { "sensor_name" : "$sensor_name",  "sensor_type" : "$sensor_type"  }, "cnt" : { "$sum" : 1 },  "ts" : { "$max" : "$ts" }  } }, 
-    { "$project": {  "name" : { "$concat" : ["$_id.sensor_name",":","$_id.sensor_type" ]},  "value" : "$cnt",  "ts" : 1, "_id" : 0} } 
+	{  "$match" :  {  "ts" : { "$gte" : "$from", "$lt" : "$to"  }}},
+	{  "$group":    {  "_id":  { "sensor_name" : "$sensor_name",  "sensor_type" : "$sensor_type"  }, "cnt" : { "$sum" : 1 },  "ts" : { "$max" : "$ts" }  } }, 
+	{ "$project": {  "name" : { "$concat" : ["$_id.sensor_name",":","$_id.sensor_type" ]},  "value" : "$cnt",  "ts" : 1, "_id" : 0} } 
 ])
 ```    
 

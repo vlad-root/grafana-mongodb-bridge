@@ -1,0 +1,33 @@
+version: "3"
+services:
+
+  bridge:
+    build: ./bridge
+    command: ./develop_in_container.sh
+    networks:
+      - common
+    volumes:
+      - ./bridge:/app/ # Important for ./develop_in_container.sh
+    ports:
+      - 127.0.0.1:3333:3333
+
+  docker-host:
+    image: qoomon/docker-host
+    cap_add: [ 'NET_ADMIN', 'NET_RAW' ]
+    networks:
+      - common
+
+  grafana:
+    build: 
+      context: .
+      dockerfile: GrafanaUnsignedPlugin.Dockerfile
+    image: grafana/grafana:latest
+    volumes: 
+      - ./plugin/dist:/var/lib/grafana/plugins/grafana-mongodb-bridge
+    networks:
+      - common
+    ports:
+      - 127.0.0.1:3001:3000
+
+networks:
+  common:

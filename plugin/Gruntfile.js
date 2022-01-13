@@ -16,15 +16,9 @@ module.exports = function(grunt) {
 				src: ['**/*', '!**/*.js', '!**/*.scss'],
 				dest: 'dist'
 			},
-			server_to_dist: {
-				cwd: 'server',
-				expand: true,
-				src: ['**/*'],
-				dest: 'dist/server'
-			},
 			pluginDef: {
 				expand: true,
-				src: ['README.md'],
+				src: ['../README.md'],
 				dest: 'dist'
 			}
 		},
@@ -53,36 +47,14 @@ module.exports = function(grunt) {
 					dest: 'dist',
 					ext:'.js'
 				}]
-			},
-			distTestNoSystemJs: {
-				files: [{
-					cwd: 'src',
-					expand: true,
-					src: ['**/*.js'],
-					dest: 'dist/test',
-					ext:'.js'
-				}]
-			},
-			distTestsSpecsNoSystemJs: {
-				files: [{
-					expand: true,
-					cwd: 'spec',
-					src: ['**/*.js'],
-					dest: 'dist/test/spec',
-					ext:'.js'
-				}]
 			}
 		},
-
-		mochaTest: {
-			test: {
-				options: {
-					reporter: 'spec'
-				},
-				src: ['dist/test/spec/test-main.js', 'dist/test/spec/*_spec.js']
-			}
-		}
 	});
 
-	grunt.registerTask('default', ['clean', 'copy:src_to_dist', 'copy:server_to_dist', 'copy:pluginDef', 'babel', 'mochaTest']);
+	grunt.registerTask('default', [
+		'clean', 
+		'copy:src_to_dist', 
+		'copy:pluginDef', 
+		'babel', 
+	]);
 };
