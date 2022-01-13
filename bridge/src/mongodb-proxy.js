@@ -117,10 +117,16 @@ app.all('/query', function(req, res, next){
 
 	// Parse query string in target
 	substitutions = { 
-		"$from" : new Date(req.body.range.from),
-		"$to" : new Date(req.body.range.to),
-		"$dateBucketCount" : getBucketCount(req.body.range.from, req.body.range.to, req.body.intervalMs)
+		"$grafanaFrom": new Date(req.body.range.from),
+		"$grafanaTo": new Date(req.body.range.to),
+		"$grafanaDateBucketCount": getBucketCount(req.body.range.from, req.body.range.to, req.body.intervalMs),
+		"$grafanaIntervalMilliseconds": req.body.intervalMs,
 	}
+
+	// Deprecated substitutions
+	substitutions["$from"] = substitutions["$grafanaFrom"]
+	substitutions["$to"] = substitutions["$grafanaTo"]
+	substitutions["$dateBucketCount"] = substitutions["$grafanaDateBucketCount"]
 
 	// Generate an id to track requests
 	let requestId = ++requestIdCounter                 
@@ -132,6 +138,8 @@ app.all('/query', function(req, res, next){
 	for ( let queryId = 0; queryId < req.body.targets.length && !error; queryId++){
 		tg = req.body.targets[queryId]
 		queryArgs = parseQuery(tg.target, substitutions)
+
+		console.log(JSON.stringify(queryArgs, null, 4))
 		queryArgs.type = tg.type
 		if (queryArgs.err != null){
 			queryError(requestId, queryArgs.err, next)
@@ -222,6 +230,18 @@ function parseQuery(query, substitutions){
 				for ( let i = 0; i < doc.pipeline.length; i++){
 					let stage = doc.pipeline[i]
 					forIn(stage, function (obj, key, value){
+							if(typeof value == "object" && value !== null){
+								if(value["$grafanaGroupInterval"]){
+									obj[key] = {
+										"$toDate": {
+											"$subtract": [
+												{ "$toLong": { "$toDate": value["$grafanaGroupInterval"] }  },
+												{ "$mod": [ { "$toLong": { "$toDate": value["$grafanaGroupInterval"] } }, substitutions["$grafanaIntervalMilliseconds"] ] }
+											]
+										}
+									}
+								}
+							}
 							if ( typeof(value) == "string" ){
 								if ( value in substitutions ){
 									obj[key] = substitutions[value]
