@@ -1,7 +1,7 @@
 version: "3"
 services:
 
-  bridge:
+  grafana-mongodb-bridge:
     build: ./bridge
     command: ./develop_in_container.sh
     networks:
@@ -17,13 +17,8 @@ services:
     networks:
       - common
 
-  grafana:
-    build: 
-      context: .
-      dockerfile: GrafanaUnsignedPlugin.Dockerfile
-    image: grafana/grafana:latest
-    volumes: 
-      - ./plugin/dist:/var/lib/grafana/plugins/grafana-mongodb-bridge
+  grafana-mongodb-bridge-plugin:
+    build: ./plugin
     networks:
       - common
     ports:
