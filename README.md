@@ -1,12 +1,6 @@
-# MongoDB datasource for Grafana
-
-## Features
-Allows MongoDB to be used as a data source for Grafana by providing a proxy to convert the Grafana Data source [API](http://docs.grafana.org/plugins/developing/datasources/) into MongoDB aggregation queries
-
-## Requirements
-
-* **Grafana** > 3.x.x
-* **MongoDB** > 3.4.x
+# Grafana MongoDB Bridge - MongoDB Datasource for Grafana 
+## 
+Based on [JamesOsgood/mongodb-grafana](https://github.com/JamesOsgood/mongodb-grafana) 
 
 ## Deploy
 
@@ -165,14 +159,6 @@ db.sensor_value.aggregate(
 ```    
 
 The dashboard in `examples\Sensor Values Count - Atlas.json` shows this.
-
-## Running the proxy as a service on a Mac
-
-* Install [forever-mac](https://www.npmjs.com/package/forever-mac)
-* Copy server/mongodb-grafana-proxy.plist to ~/Library/LaunchAgents
-* run `launchctl load mongodb-grafana-proxy` from ~/Library/LaunchAgents
-
-This launch ctrl plist runs the node script via forever. To check it's running, use `forever list`. Logs go into /usr/local/var/lib/grafana/plugins/mongodb-grafana/dist/server
 
 ## Development
 
