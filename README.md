@@ -17,19 +17,19 @@ version: "3"
 services:
 
   grafana-mongodb-bridge:
-	image: ghcr.io/vlad-root/grafana-mongodb-bridge:latest
-    networks:
-      - common
-    ports:
-      - 127.0.0.1:3333:3333
+    image: ghcr.io/vlad-root/grafana-mongodb-bridge:latest
+  networks:
+    - common
+  ports:
+    - 127.0.0.1:3333:3333
 
   # Either use a container with pre-built plugin
   grafana-mongodb-bridge-plugin:
     image: ghcr.io/vlad-root/grafana-mongodb-bridge-plugin:latest
-	networks:
-      - common
-    ports:
-      - 127.0.0.1:3001:3000
+  networks:
+    - common
+  ports:
+    - 127.0.0.1:3001:3000
 
   # Or download the plugin from the releases section and drop it in the ./_data/grafana/plugins folder
   grafana:
@@ -83,8 +83,6 @@ db.users.aggregate([
 ### **$from** - deprecated (alias for $grafanaFrom)
 ### **$to** - deprecated (alias for $grafanaTo)
 ### **$dateBucketCount** - deprecated (alias for $grafanaDateBucketCount)
-
-<br>
 
 ## Examples
 
