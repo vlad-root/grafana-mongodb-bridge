@@ -119,14 +119,14 @@ app.all('/query', function(req, res, next){
 	substitutions = { 
 		"$grafanaFrom": new Date(req.body.range.from),
 		"$grafanaTo": new Date(req.body.range.to),
-		"$grafanaDateBucketCount": getBucketCount(req.body.range.from, req.body.range.to, req.body.intervalMs),
+		"$grafanaIntervalBucketCount": getBucketCount(req.body.range.from, req.body.range.to, req.body.intervalMs),
 		"$grafanaIntervalMilliseconds": req.body.intervalMs,
 	}
 
 	// Deprecated substitutions
 	substitutions["$from"] = substitutions["$grafanaFrom"]
 	substitutions["$to"] = substitutions["$grafanaTo"]
-	substitutions["$dateBucketCount"] = substitutions["$grafanaDateBucketCount"]
+	substitutions["$dateBucketCount"] = substitutions["$grafanaIntervalBucketCount"]
 
 	// Generate an id to track requests
 	let requestId = ++requestIdCounter                 
@@ -231,12 +231,12 @@ function parseQuery(query, substitutions){
 					let stage = doc.pipeline[i]
 					forIn(stage, function (obj, key, value){
 							if(typeof value == "object" && value !== null){
-								if(value["$grafanaGroupInterval"]){
+								if(value["$grafanaIntervalGroup"]){
 									obj[key] = {
 										"$toDate": {
 											"$subtract": [
-												{ "$toLong": { "$toDate": value["$grafanaGroupInterval"] }  },
-												{ "$mod": [ { "$toLong": { "$toDate": value["$grafanaGroupInterval"] } }, substitutions["$grafanaIntervalMilliseconds"] ] }
+												{ "$toLong": { "$toDate": value["$grafanaIntervalGroup"] }  },
+												{ "$mod": [ { "$toLong": { "$toDate": value["$grafanaIntervalGroup"] } }, substitutions["$grafanaIntervalMilliseconds"] ] }
 											]
 										}
 									}

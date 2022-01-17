@@ -15,12 +15,6 @@ module.exports = function(grunt) {
 				expand: true,
 				src: ['**/*', '!**/*.js', '!**/*.scss'],
 				dest: 'dist'
-			},
-			pluginDef: {
-				expand: true,
-				src: ['README.md', "doc/**/*"],
-				dest: 'dist',
-				cwd: ".."
 			}
 		},
 
@@ -55,7 +49,6 @@ module.exports = function(grunt) {
 	grunt.registerTask('default', [
 		'clean', 
 		'copy:src_to_dist', 
-		'copy:pluginDef', 
 		'babel', 
 	]);
 };

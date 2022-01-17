@@ -5,8 +5,8 @@
 	"description": "",
 	"main": "src/mongodb-proxy.js",
 	"scripts": {
-		"start": "node ./src/mongodb-proxy.ts",
-		"develop": "npx nodemon -L -w /app/ -e js node ./src/mongodb-proxy.ts"
+		"start": "node ./src/mongodb-proxy.js",
+		"develop": "npx nodemon -L -w /app/ -e js node ./src/mongodb-proxy.js"
 	},
 	"repository": {
 		"type": "git",
